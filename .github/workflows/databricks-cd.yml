@@ -22,7 +22,7 @@ jobs:
         uses: databricks/setup-cli@main
 
       - name: Deploy bundle
-        run: databricks bundle deploy --target prod --var="deploy_date=$(date -u +%Y-%m-%d)"
+        run: databricks bundle deploy --target prod
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
