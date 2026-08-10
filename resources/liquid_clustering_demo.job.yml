@@ -1,0 +1,26 @@
+# On-demand job that runs the liquid clustering benchmark notebook.
+# No trigger is defined on purpose -- this generates/rewrites ~1GB of data and
+# should only run when you explicitly kick it off (UI "Run now" or `databricks
+# bundle run liquid_clustering_demo --profile de-projects`), not on a schedule.
+
+resources:
+  jobs:
+    liquid_clustering_demo:
+      name: liquid_clustering_demo
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+        - name: table_name
+          default: bookings_liquid_clustering_demo
+        - name: num_rows
+          default: "90000000"
+        - name: append_rows
+          default: "450000"
+
+      tasks:
+        - task_key: liquid_clustering_demo
+          notebook_task:
+            notebook_path: ../src/liquid_clustering_demo.ipynb

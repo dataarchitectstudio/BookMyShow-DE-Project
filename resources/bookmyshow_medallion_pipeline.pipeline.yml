@@ -1,0 +1,21 @@
+# The BookMyShow medallion pipeline: raw synthetic data -> bronze (Auto Loader
+# ingestion) -> silver (cleansed/deduplicated/conformed) -> gold (dimensions,
+# fact table, and business aggregations). Every dataset is fully qualified with
+# its own bronze/silver/gold schema (see src/bookmyshow_medallion_pipeline),
+# since a single pipeline spans all three.
+
+resources:
+  pipelines:
+    bookmyshow_medallion_pipeline:
+      name: bookmyshow_medallion_pipeline
+      catalog: ${var.catalog}
+      schema: bronze
+      serverless: true
+      root_path: "../src/bookmyshow_medallion_pipeline"
+
+      configuration:
+        bookmyshow.catalog: ${var.catalog}
+
+      libraries:
+        - glob:
+            include: ../src/bookmyshow_medallion_pipeline/transformations/**

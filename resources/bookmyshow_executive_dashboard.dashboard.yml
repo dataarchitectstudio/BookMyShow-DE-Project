@@ -1,0 +1,12 @@
+# BookMyShow Executive Analytics -- AI/BI dashboard over the gold layer.
+# KPIs, daily revenue trend, payment-gateway health (the outage story), city
+# revenue, booking channel split, theatre occupancy, and top movies.
+
+resources:
+  dashboards:
+    bookmyshow_executive_dashboard:
+      display_name: "BookMyShow Executive Analytics"
+      file_path: ../src/dashboards/bookmyshow_executive_dashboard.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      dataset_catalog: ${var.catalog}
+      dataset_schema: gold

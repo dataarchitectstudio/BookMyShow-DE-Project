@@ -1,7 +1,9 @@
-# This is a Declarative Automation Bundle definition for BookMyShow_dlt_001.
+# Declarative Automation Bundle for the BookMyShow Analytics lakehouse:
+# synthetic booking data -> medallion pipeline (bronze/silver/gold) -> semantic
+# model -> executive AI/BI dashboard.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
-  name: BookMyShow_dlt_001
+  name: bookmyshow_analytics
   uuid: d1108889-5961-4b38-839f-e105821ab60f
 
 include:
@@ -13,11 +15,16 @@ artifacts:
     build: uv build --wheel
 
 # Variable declarations. These variables are assigned in the dev/prod targets below.
+# The medallion schema names (raw/bronze/silver/gold) are fixed -- see resources/ --
+# only the catalog differs per environment, so dev and prod are fully isolated.
 variables:
   catalog:
-    description: The catalog to use
+    description: Unity Catalog catalog that holds the raw/bronze/silver/gold schemas
+  warehouse_id:
+    description: Serverless SQL warehouse used by the dashboard and metric view
+    default: 3a9e8611697fbf8a
   schema:
-    description: The schema to use
+    description: Scratch schema used only by the unrelated liquid_clustering_demo job
 
 targets:
   dev:
@@ -30,7 +37,7 @@ targets:
     workspace:
       host: https://dbc-698fb84c-be59.cloud.databricks.com
     variables:
-      catalog: workspace
+      catalog: bookmyshow_analytics_dev
       schema: ${workspace.current_user.short_name}
   prod:
     mode: production
@@ -39,7 +46,7 @@ targets:
       # We explicitly deploy to /Workspace/Users/dataarchitectstudio@gmail.com to make sure we only have a single copy.
       root_path: /Workspace/Users/dataarchitectstudio@gmail.com/.bundle/${bundle.name}/${bundle.target}
     variables:
-      catalog: workspace
+      catalog: bookmyshow_analytics_prod
       schema: prod
     permissions:
       - user_name: dataarchitectstudio@gmail.com

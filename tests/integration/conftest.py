@@ -1,22 +1,31 @@
 """This file configures pytest, initializes Databricks Connect, and provides fixtures for Spark and loading test data."""
 
-import os, sys, pathlib
+import os
+import pathlib
+import sys
 from contextlib import contextmanager
 
-
 try:
+    import csv
+    import json
+
+    import pytest
     from databricks.connect import DatabricksSession
     from databricks.sdk import WorkspaceClient
     from pyspark.sql import SparkSession
-    import pytest
-    import json
-    import csv
-    import os
-    
 except ImportError:
     raise ImportError(
         "Test dependencies not found.\n\nRun tests using 'uv run pytest'. See http://docs.astral.sh/uv to learn more about uv."
     )
+
+
+@pytest.fixture()
+def catalog() -> str:
+    """The Unity Catalog catalog to test against.
+
+    Defaults to the dev catalog; override with BOOKMYSHOW_CATALOG=... for prod.
+    """
+    return os.environ.get("BOOKMYSHOW_CATALOG", "bookmyshow_analytics_dev")
 
 
 @pytest.fixture()

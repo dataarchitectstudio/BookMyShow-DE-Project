@@ -1,0 +1,39 @@
+# Daily orchestration job for BookMyShow Analytics: refreshes the medallion
+# pipeline, then prints the latest daily revenue summary from the gold layer.
+
+resources:
+  jobs:
+    bookmyshow_daily_batch_job:
+      name: bookmyshow_daily_batch_job
+
+      trigger:
+        periodic:
+          interval: 1
+          unit: DAYS
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+
+      tasks:
+        - task_key: refresh_medallion_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.bookmyshow_medallion_pipeline.id}
+
+        - task_key: print_daily_revenue_summary
+          depends_on:
+            - task_key: refresh_medallion_pipeline
+          python_wheel_task:
+            package_name: bookmyshow-analytics
+            entry_point: main
+            parameters:
+              - "--catalog"
+              - "${var.catalog}"
+          environment_key: default
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              - ../dist/*.whl

@@ -1,0 +1,1207 @@
+{
+  "datasets": [
+    {
+      "name": "ds_bookings",
+      "displayName": "Bookings",
+      "queryLines": [
+        "SELECT booking_date, city, state, screen_type, genre, is_blockbuster, payment_gateway, payment_status, booking_channel, is_cancelled, seats_booked, ticket_amount, net_amount FROM fact_bookings "
+      ],
+      "columns": [
+        {
+          "displayName": "Total Revenue",
+          "description": "Net revenue from successful bookings",
+          "expression": "SUM(CASE WHEN `payment_status`='SUCCESS' THEN `net_amount` ELSE 0 END)"
+        },
+        {
+          "displayName": "Total Bookings",
+          "description": "Count of booking transactions",
+          "expression": "COUNT(1)"
+        },
+        {
+          "displayName": "Failed Bookings",
+          "description": "Count of failed-payment bookings",
+          "expression": "SUM(CASE WHEN `payment_status`='FAILED' THEN 1 ELSE 0 END)"
+        },
+        {
+          "displayName": "Payment Failure Rate",
+          "description": "Share of bookings with a failed payment",
+          "expression": "SUM(CASE WHEN `payment_status`='FAILED' THEN 1 ELSE 0 END) * 1.0 / COUNT(1)"
+        },
+        {
+          "displayName": "Avg Ticket Price",
+          "description": "Average gross ticket amount per booking",
+          "expression": "AVG(`ticket_amount`)"
+        },
+        {
+          "displayName": "Cancellation Rate",
+          "description": "Share of successful bookings later cancelled",
+          "expression": "SUM(CASE WHEN `is_cancelled` THEN 1 ELSE 0 END) * 1.0 / NULLIF(SUM(CASE WHEN `payment_status`='SUCCESS' THEN 1 ELSE 0 END), 0)"
+        },
+        {
+          "displayName": "Total Tickets Sold",
+          "description": "Seats booked across successful bookings",
+          "expression": "SUM(CASE WHEN `payment_status`='SUCCESS' THEN `seats_booked` ELSE 0 END)"
+        }
+      ],
+      "catalog": "bookmyshow_analytics_dev",
+      "schema": "gold"
+    },
+    {
+      "name": "ds_movies_top10",
+      "displayName": "Top 10 movies by revenue",
+      "queryLines": [
+        "SELECT movie_id, title, genre, is_blockbuster, total_bookings, total_tickets_sold, total_revenue, avg_ticket_price, performance_label FROM agg_movie_performance ORDER BY total_revenue DESC LIMIT 10"
+      ],
+      "catalog": "bookmyshow_analytics_dev",
+      "schema": "gold"
+    },
+    {
+      "name": "ds_movies_top25",
+      "displayName": "Movie performance detail (top 25 by revenue)",
+      "queryLines": [
+        "SELECT movie_id, title, genre, is_blockbuster, total_bookings, total_tickets_sold, total_revenue, avg_ticket_price, performance_label FROM agg_movie_performance ORDER BY total_revenue DESC LIMIT 25"
+      ],
+      "catalog": "bookmyshow_analytics_dev",
+      "schema": "gold"
+    },
+    {
+      "name": "ds_theatres",
+      "displayName": "Theatre occupancy",
+      "queryLines": [
+        "SELECT theatre_id, theatre_name, city, screen_type, total_shows, total_seats_available, total_seats_booked, occupancy_rate FROM agg_theatre_occupancy "
+      ],
+      "catalog": "bookmyshow_analytics_dev",
+      "schema": "gold"
+    }
+  ],
+  "pages": [
+    {
+      "name": "overview",
+      "displayName": "Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "header",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# <span style=\"color: #FF3621;font-weight: 800;\">BookMyShow</span> Executive Analytics\n",
+                "\n",
+                "*by&#32; <span style=\"font-size: 24px;color: #FFAB00;\">DataArchitectStudio*</span>\n",
+                "\n",
+                "**The story:** a payment-gateway outage hit **PayFast** transactions in **Mumbai & Delhi** for a single day, spiking the failure rate from a \\~3% baseline to over 45% and denting that day's revenue. Filter by date, city, or genre to isolate the incident, or explore booking trends, top movies, and theatre occupancy nationwide."
+              ]
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "dark": "#3A2A2B"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 12,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_date",
+            "queries": [
+              {
+                "name": "q_date_bookings",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "booking_date",
+                      "expression": "`booking_date`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-date-range-picker",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "booking_date",
+                    "displayName": "Booking Date",
+                    "queryName": "q_date_bookings"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Booking Date"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_city",
+            "queries": [
+              {
+                "name": "q_city_bookings",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q_city_theatres",
+                "query": {
+                  "datasetName": "ds_theatres",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "city",
+                    "displayName": "City",
+                    "queryName": "q_city_bookings"
+                  },
+                  {
+                    "fieldName": "city",
+                    "displayName": "City",
+                    "queryName": "q_city_theatres"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "City"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 3,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "filter_genre",
+            "queries": [
+              {
+                "name": "q_genre_bookings",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "genre",
+                      "expression": "`genre`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q_genre_movies_top10",
+                "query": {
+                  "datasetName": "ds_movies_top10",
+                  "fields": [
+                    {
+                      "name": "genre",
+                      "expression": "`genre`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              },
+              {
+                "name": "q_genre_movies_top25",
+                "query": {
+                  "datasetName": "ds_movies_top25",
+                  "fields": [
+                    {
+                      "name": "genre",
+                      "expression": "`genre`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "genre",
+                    "displayName": "Genre",
+                    "queryName": "q_genre_bookings"
+                  },
+                  {
+                    "fieldName": "genre",
+                    "displayName": "Genre",
+                    "queryName": "q_genre_movies_top10"
+                  },
+                  {
+                    "fieldName": "genre",
+                    "displayName": "Genre",
+                    "queryName": "q_genre_movies_top25"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Genre"
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 3,
+            "width": 4,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_total_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "measure(Total Revenue)",
+                      "expression": "MEASURE(`Total Revenue`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Total Revenue",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Total Revenue)",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "INR",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 2
+                    }
+                  },
+                  "style": {
+                    "fontFamily": "Impact",
+                    "fontColor": "#D42675"
+                  },
+                  "displayName": "Total Revenue"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_total_bookings",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "measure(Total Bookings)",
+                      "expression": "MEASURE(`Total Bookings`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Total Bookings",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Total Bookings)",
+                  "style": {
+                    "fontFamily": "Impact",
+                    "fontColor": {
+                      "themeColorType": "canvasBackgroundColor"
+                    }
+                  },
+                  "displayName": "Total Bookings"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_avg_ticket_price",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "measure(Avg Ticket Price)",
+                      "expression": "MEASURE(`Avg Ticket Price`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Avg Ticket Price",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Avg Ticket Price)",
+                  "style": {
+                    "fontFamily": "Impact",
+                    "fontColor": {
+                      "themeColorType": "visualizationColors",
+                      "position": 3
+                    }
+                  },
+                  "displayName": "Avg Ticket Price"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "kpi_failure_rate",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "measure(Payment Failure Rate)",
+                      "expression": "MEASURE(`Payment Failure Rate`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Payment Failure Rate",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "measure(Payment Failure Rate)",
+                  "format": {
+                    "type": "number-percent",
+                    "decimalPlaces": {
+                      "type": "exact",
+                      "places": 1
+                    }
+                  },
+                  "style": {
+                    "fontFamily": "Impact",
+                    "fontColor": {
+                      "themeColorType": "visualizationColors",
+                      "position": 1
+                    }
+                  },
+                  "displayName": "Payment Failure Rate"
+                }
+              },
+              "data": {
+                "queryName": "main_query"
+              }
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "hdr_trends",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Trends\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_daily_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "daily(booking_date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `booking_date`)"
+                    },
+                    {
+                      "name": "measure(Total Revenue)",
+                      "expression": "MEASURE(`Total Revenue`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "DATE_TRUNC(\"DAY\", `booking_date`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(booking_date)",
+                  "displayName": "Booking Date",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(Total Revenue)",
+                  "displayName": "Total Revenue",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Daily Revenue Trend",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 12,
+            "width": 12,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "hdr_payment_health",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Payment Health\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 18,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_gateway_failure_trend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "daily(booking_date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `booking_date`)"
+                    },
+                    {
+                      "name": "payment_gateway",
+                      "expression": "`payment_gateway`"
+                    },
+                    {
+                      "name": "measure(Payment Failure Rate)",
+                      "expression": "MEASURE(`Payment Failure Rate`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "ASC",
+                      "expression": "DATE_TRUNC(\"DAY\", `booking_date`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(booking_date)",
+                  "displayName": "Booking Date",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(Payment Failure Rate)",
+                  "displayName": "Failure Rate",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-percent"
+                  }
+                },
+                "color": {
+                  "fieldName": "payment_gateway",
+                  "displayName": "Gateway",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "PayFast",
+                        "color": "#E63946"
+                      },
+                      {
+                        "value": "Razorpay",
+                        "color": "#2A9D8F"
+                      },
+                      {
+                        "value": "CCAvenue",
+                        "color": "#F4A261"
+                      },
+                      {
+                        "value": "Paytm",
+                        "color": "#E9C46A"
+                      },
+                      {
+                        "value": "Stripe",
+                        "color": "#8E7DBE"
+                      }
+                    ]
+                  }
+                }
+              },
+              "frame": {
+                "title": "Payment Failure Rate by Gateway",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 19,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "table_gateway_city_failures",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "payment_gateway",
+                      "expression": "`payment_gateway`"
+                    },
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "measure(Total Bookings)",
+                      "expression": "MEASURE(`Total Bookings`)"
+                    },
+                    {
+                      "name": "measure(Failed Bookings)",
+                      "expression": "MEASURE(`Failed Bookings`)"
+                    },
+                    {
+                      "name": "measure(Payment Failure Rate)",
+                      "expression": "MEASURE(`Payment Failure Rate`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "MEASURE(`Payment Failure Rate`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "payment_gateway",
+                    "displayName": "Gateway"
+                  },
+                  {
+                    "fieldName": "city",
+                    "displayName": "City"
+                  },
+                  {
+                    "fieldName": "measure(Total Bookings)",
+                    "displayName": "Total Bookings"
+                  },
+                  {
+                    "fieldName": "measure(Failed Bookings)",
+                    "displayName": "Failed Bookings"
+                  },
+                  {
+                    "fieldName": "measure(Payment Failure Rate)",
+                    "displayName": "Failure Rate",
+                    "type": "column",
+                    "displayAs": "number",
+                    "numberFormat": "0.0%"
+                  }
+                ]
+              },
+              "frame": {
+                "title": "Failure Rate by Gateway & City",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 19,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "hdr_reach",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Reach & Engagement\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 25,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_city_revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "city",
+                      "expression": "`city`"
+                    },
+                    {
+                      "name": "measure(Total Revenue)",
+                      "expression": "MEASURE(`Total Revenue`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "MEASURE(`Total Revenue`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "city",
+                  "displayName": "City",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "measure(Total Revenue)",
+                  "displayName": "Total Revenue",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "city",
+                  "displayName": "City",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Revenue by City",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 26,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_booking_channel",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_bookings",
+                  "fields": [
+                    {
+                      "name": "booking_channel",
+                      "expression": "`booking_channel`"
+                    },
+                    {
+                      "name": "measure(Total Bookings)",
+                      "expression": "MEASURE(`Total Bookings`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "MEASURE(`Total Bookings`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "measure(Total Bookings)",
+                  "displayName": "Total Bookings"
+                },
+                "color": {
+                  "fieldName": "booking_channel",
+                  "displayName": "Channel",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Booking Channel Split",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 26,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_occupancy_by_screen_type",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_theatres",
+                  "fields": [
+                    {
+                      "name": "screen_type",
+                      "expression": "`screen_type`"
+                    },
+                    {
+                      "name": "avg(occupancy_rate)",
+                      "expression": "AVG(`occupancy_rate`)"
+                    }
+                  ],
+                  "disaggregated": false,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "AVG(`occupancy_rate`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "screen_type",
+                  "displayName": "Screen Type",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "avg(occupancy_rate)",
+                  "displayName": "Avg Occupancy",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "format": {
+                    "type": "number-percent"
+                  }
+                },
+                "color": {
+                  "fieldName": "screen_type",
+                  "displayName": "Screen Type",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Occupancy Rate by Screen Type",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 26,
+            "width": 4,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "hdr_movies",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Movie Performance\n"
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 32,
+            "width": 12,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "chart_top_movies",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_movies_top10",
+                  "fields": [
+                    {
+                      "name": "title",
+                      "expression": "`title`"
+                    },
+                    {
+                      "name": "total_revenue",
+                      "expression": "`total_revenue`"
+                    }
+                  ],
+                  "disaggregated": true,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "`total_revenue`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "total_revenue",
+                  "displayName": "Total Revenue",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "title",
+                  "displayName": "Movie",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "sort": {
+                    "by": "total_revenue",
+                    "direction": "desc"
+                  }
+                },
+                "color": {
+                  "fieldName": "title",
+                  "displayName": "Movie",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                }
+              },
+              "frame": {
+                "title": "Top 10 Movies by Revenue",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 33,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "table_movie_performance",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_movies_top25",
+                  "fields": [
+                    {
+                      "name": "title",
+                      "expression": "`title`"
+                    },
+                    {
+                      "name": "genre",
+                      "expression": "`genre`"
+                    },
+                    {
+                      "name": "performance_label",
+                      "expression": "`performance_label`"
+                    },
+                    {
+                      "name": "total_bookings",
+                      "expression": "`total_bookings`"
+                    },
+                    {
+                      "name": "total_revenue",
+                      "expression": "`total_revenue`"
+                    },
+                    {
+                      "name": "avg_ticket_price",
+                      "expression": "`avg_ticket_price`"
+                    }
+                  ],
+                  "disaggregated": true,
+                  "orders": [
+                    {
+                      "direction": "DESC",
+                      "expression": "`total_revenue`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "title",
+                    "displayName": "Movie"
+                  },
+                  {
+                    "fieldName": "genre",
+                    "displayName": "Genre"
+                  },
+                  {
+                    "fieldName": "performance_label",
+                    "displayName": "Performance"
+                  },
+                  {
+                    "fieldName": "total_bookings",
+                    "displayName": "Bookings"
+                  },
+                  {
+                    "fieldName": "total_revenue",
+                    "displayName": "Revenue",
+                    "type": "column",
+                    "displayAs": "number",
+                    "numberFormat": "\u20b9#,##0"
+                  },
+                  {
+                    "fieldName": "avg_ticket_price",
+                    "displayName": "Avg Price",
+                    "type": "column",
+                    "displayAs": "number",
+                    "numberFormat": "\u20b9#,##0"
+                  }
+                ]
+              },
+              "frame": {
+                "title": "Movie Performance Detail",
+                "showTitle": true
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 33,
+            "width": 6,
+            "height": 7
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#F6F5FA",
+        "dark": "#03F03A"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#1C2126"
+      },
+      "widgetBorderColor": {
+        "light": "#E7E4F0",
+        "dark": "#2A323A"
+      },
+      "fontColor": {
+        "light": "#1B1F27",
+        "dark": "#ECEFF3"
+      },
+      "selectionColor": {
+        "light": "#2272B4",
+        "dark": "#8ACAFF"
+      },
+      "visualizationColors": [
+        "#E63946",
+        "#F4A261",
+        "#E9C46A",
+        "#2A9D8F",
+        "#264653",
+        "#8E7DBE",
+        "#5DA9E9",
+        "#06A77D"
+      ],
+      "widgetHeaderAlignment": "LEFT",
+      "fontFamily": "Inter",
+      "widgetCornerRadius": 12
+    },
+    "applyModeEnabled": false
+  }
+}

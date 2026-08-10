@@ -1,0 +1,31 @@
+# On-demand job that (re)generates the BookMyShow synthetic dataset into the
+# raw landing volume. No trigger on purpose -- this rewrites ~2M booking rows
+# and should only run when explicitly kicked off (UI "Run now" or
+# `databricks bundle run bookmyshow_synthetic_data_job --profile <profile>`),
+# not on a schedule. The medallion pipeline ingests whatever is here.
+
+resources:
+  jobs:
+    bookmyshow_synthetic_data_job:
+      name: bookmyshow_synthetic_data_job
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: n_theatres
+          default: "200"
+        - name: n_movies
+          default: "600"
+        - name: n_customers
+          default: "150000"
+        - name: n_shows
+          default: "120000"
+        - name: n_bookings
+          default: "2000000"
+        - name: seed
+          default: "42"
+
+      tasks:
+        - task_key: generate_synthetic_data
+          notebook_task:
+            notebook_path: ../src/bookmyshow_synthetic_data_generation.py
