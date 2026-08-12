@@ -1,9 +1,10 @@
-# A sample job for BookMyShow_dlt_001.
+# Daily refresh job for the BookMyShow data platform: generate today's incremental
+# synthetic data, then refresh the bronze/silver/gold pipeline on top of it.
 
 resources:
   jobs:
-    sample_job:
-      name: sample_job
+    bookmyshow_daily_refresh:
+      name: bookmyshow_daily_refresh
 
       trigger:
         # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
@@ -18,37 +19,34 @@ resources:
       parameters:
         - name: catalog
           default: ${var.catalog}
-        - name: schema
-          default: ${var.schema}
+        - name: bronze_schema
+          default: ${resources.schemas.bronze_schema.name}
 
       tasks:
-        - task_key: notebook_task
-          notebook_task:
-            notebook_path: ../src/sample_notebook.ipynb
-        - task_key: python_wheel_task
-          depends_on:
-            - task_key: notebook_task
+        - task_key: generate_synthetic_data
           python_wheel_task:
-            package_name: BookMyShow_dlt_001
+            package_name: bookmyshow
             entry_point: main
             parameters:
               - "--catalog"
               - "${var.catalog}"
-              - "--schema"
-              - "${var.schema}"
+              - "--bronze-schema"
+              - "${resources.schemas.bronze_schema.name}"
+              - "--mode"
+              - "incremental"
           environment_key: default
         - task_key: refresh_pipeline
           depends_on:
-            - task_key: notebook_task
+            - task_key: generate_synthetic_data
           pipeline_task:
-            pipeline_id: ${resources.pipelines.BookMyShow_dlt_001_etl.id}
+            pipeline_id: ${resources.pipelines.bookmyshow_etl.id}
 
       environments:
         - environment_key: default
           spec:
             environment_version: "4"
             dependencies:
-              # By default we just include the .whl file generated for the BookMyShow_dlt_001 package.
+              # By default we just include the .whl file generated for the bookmyshow package.
               # See https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
               # for more information on how to add other libraries.
               - ../dist/*.whl

@@ -1,5 +1,5 @@
 [project]
-name = "BookMyShow_dlt_001"
+name = "bookmyshow"
 version = "0.0.1"
 authors = [{ name = "dataarchitectstudio@gmail.com" }]
 requires-python = ">=3.10,<3.13"
@@ -9,6 +9,7 @@ dependencies = [
     #
     # LIMITATION: for pipelines, dependencies are cached during development;
     # add dependencies to the 'environment' section of your pipeline.yml file instead
+    "faker",
 ]
 
 [dependency-groups]
@@ -21,7 +22,7 @@ dev = [
 ]
 
 [project.scripts]
-main = "BookMyShow_dlt_001.main:main"
+main = "bookmyshow.main:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -29,3 +30,7 @@ build-backend = "hatchling.build"
 
 [tool.ruff]
 line-length = 120
+# `spark` and `dbutils` are injected into the execution namespace by the Lakeflow
+# Declarative Pipelines / notebook runtime, not imported - without this, ruff flags
+# every pipeline transformation file as using an undefined name.
+builtins = ["spark", "dbutils"]

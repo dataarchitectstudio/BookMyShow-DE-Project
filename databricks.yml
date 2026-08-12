@@ -1,7 +1,9 @@
-# This is a Declarative Automation Bundle definition for BookMyShow_dlt_001.
+# Declarative Automation Bundle for the BookMyShow Analytics lakehouse:
+# synthetic booking data -> medallion pipeline (bronze/silver/gold) -> semantic
+# model -> executive AI/BI dashboard.
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
-  name: BookMyShow_dlt_001
+  name: bookmyshow_analytics
   uuid: d1108889-5961-4b38-839f-e105821ab60f
 
 include:
@@ -13,11 +15,22 @@ artifacts:
     build: uv build --wheel
 
 # Variable declarations. These variables are assigned in the dev/prod targets below.
+# Three medallion schema variables (bronze/silver/gold) replace the original
+# template's single `schema` var -- dev gets per-user isolated schemas, prod gets
+# the fixed bronze/silver/gold names. Only the catalog otherwise differs per
+# environment, so dev and prod are fully isolated.
 variables:
   catalog:
-    description: The catalog to use
-  schema:
-    description: The schema to use
+    description: Unity Catalog catalog that holds the raw/bronze/silver/gold schemas
+  warehouse_id:
+    description: Serverless SQL warehouse used by the dashboard and metric view
+    default: 3a9e8611697fbf8a
+  bronze_schema:
+    description: Raw/bronze layer schema (Auto Loader ingested tables)
+  silver_schema:
+    description: Cleaned/deduplicated silver layer schema
+  gold_schema:
+    description: Dimensional gold layer + governed metric views schema
 
 targets:
   dev:
@@ -30,8 +43,10 @@ targets:
     workspace:
       host: https://dbc-698fb84c-be59.cloud.databricks.com
     variables:
-      catalog: workspace
-      schema: ${workspace.current_user.short_name}
+      catalog: bookmyshow_analytics_dev
+      bronze_schema: bronze
+      silver_schema: silver
+      gold_schema: gold
   prod:
     mode: production
     workspace:
@@ -39,8 +54,10 @@ targets:
       # We explicitly deploy to /Workspace/Users/dataarchitectstudio@gmail.com to make sure we only have a single copy.
       root_path: /Workspace/Users/dataarchitectstudio@gmail.com/.bundle/${bundle.name}/${bundle.target}
     variables:
-      catalog: workspace
-      schema: prod
+      catalog: bookmyshow_analytics_prod
+      bronze_schema: bronze
+      silver_schema: silver
+      gold_schema: gold
     permissions:
       - user_name: dataarchitectstudio@gmail.com
         level: CAN_MANAGE

@@ -1,0 +1,6 @@
+# Ignore every dot-folder (caches, local tool state, IDE/editor config, venvs, etc.)
+# except .github, which holds tracked CI/CD workflow config.
+.*/
+!.github/
+dist/
+uv.lock

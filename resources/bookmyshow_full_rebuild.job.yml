@@ -1,0 +1,44 @@
+# On-demand full historical rebuild for the BookMyShow data platform: generates the
+# complete synthetic dataset from scratch, then does a full-refresh pipeline run.
+# Kept separate from bookmyshow_daily_refresh (which only ever runs incrementally) so a
+# full rebuild never happens by accident.
+
+resources:
+  jobs:
+    bookmyshow_full_rebuild:
+      name: bookmyshow_full_rebuild
+
+      # On-demand only - no periodic/file-arrival trigger.
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: bronze_schema
+          default: ${resources.schemas.bronze_schema.name}
+
+      tasks:
+        - task_key: generate_synthetic_data
+          python_wheel_task:
+            package_name: bookmyshow
+            entry_point: main
+            parameters:
+              - "--catalog"
+              - "${var.catalog}"
+              - "--bronze-schema"
+              - "${resources.schemas.bronze_schema.name}"
+              - "--mode"
+              - "full"
+          environment_key: default
+        - task_key: refresh_pipeline
+          depends_on:
+            - task_key: generate_synthetic_data
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.bookmyshow_etl.id}
+            full_refresh: true
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              - ../dist/*.whl

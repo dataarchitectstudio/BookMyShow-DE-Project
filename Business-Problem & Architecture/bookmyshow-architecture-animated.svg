@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 700" role="img" aria-label="Five-stage architecture diagram. Collect: synthetic bookings, customers and shows, movies and theatres feed into Ingest: Auto Loader landing a raw volume. Ingest feeds Store: the medallion bronze, silver, gold layers governed by Unity Catalog as a lakehouse. Store feeds Compute: the Lakeflow Declarative Pipeline and the daily batch orchestration job. Compute feeds Consume: the AI/BI dashboard's executive KPIs, trends and reach, and movie performance table. A bottom bar labels the five stages Generate, Ingest, Refine, Orchestrate, Analyze, connected by dashed lines.">
+  <style>
+    .flow-dash { animation: dashmove 1.1s linear infinite; }
+    @keyframes dashmove { to { stroke-dashoffset: -14; } }
+    @media (prefers-reduced-motion: reduce) {
+      .flow-dash { animation: none; }
+      .motion-dot { display: none; }
+    }
+  </style>
+  <defs>
+    <marker id="nArrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#EDEDEF"/>
+    </marker>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g font-family="ui-sans-serif, Segoe UI, Helvetica Neue, Arial, sans-serif" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- ============ COLLECT (teal) ============ -->
+    <g stroke="#2DD4BF">
+      <rect x="46" y="66" width="216" height="392" rx="20" fill="none" stroke-width="3"/>
+
+      <rect x="62" y="86" width="184" height="102" rx="14" fill="#2DD4BF" fill-opacity="0.07" stroke-width="2"/>
+      <!-- ticket icon -->
+      <g transform="translate(154,120)">
+        <rect x="-30" y="-16" width="60" height="32" rx="6" fill="none" stroke-width="2.4"/>
+        <circle cx="-30" cy="0" r="6" fill="#18181C" stroke-width="2"/>
+        <circle cx="30" cy="0" r="6" fill="#18181C" stroke-width="2"/>
+        <line x1="0" y1="-16" x2="0" y2="16" stroke-width="1.6" stroke-dasharray="3 3"/>
+      </g>
+      <text x="154" y="168" text-anchor="middle" font-size="14" font-weight="700" fill="#EDEDEF">Synthetic Bookings</text>
+      <text x="154" y="184" text-anchor="middle" font-size="10.5" fill="#8B8B93" stroke="none">2.0M rows · seed 42</text>
+
+      <rect x="62" y="204" width="184" height="102" rx="14" fill="#2DD4BF" fill-opacity="0.07" stroke-width="2"/>
+      <!-- users icon -->
+      <g transform="translate(154,240)">
+        <circle cx="-11" cy="-4" r="9" fill="none" stroke-width="2.2"/>
+        <circle cx="11" cy="-4" r="9" fill="none" stroke-width="2.2"/>
+        <path d="M-26,18 Q-11,0 4,10" fill="none" stroke-width="2.2"/>
+        <path d="M26,18 Q11,0 -4,10" fill="none" stroke-width="2.2"/>
+      </g>
+      <text x="154" y="286" text-anchor="middle" font-size="14" font-weight="700" fill="#EDEDEF">Customers &amp; Shows</text>
+      <text x="154" y="302" text-anchor="middle" font-size="10.5" fill="#8B8B93" stroke="none">150K · 120K rows</text>
+
+      <rect x="62" y="322" width="184" height="102" rx="14" fill="#2DD4BF" fill-opacity="0.07" stroke-width="2"/>
+      <!-- clapperboard icon -->
+      <g transform="translate(154,356)">
+        <rect x="-28" y="-6" width="56" height="30" rx="4" fill="none" stroke-width="2.2"/>
+        <path d="M-28,-6 L28,-6 L20,-18 L-20,-18 Z" fill="none" stroke-width="2.2"/>
+        <line x1="-16" y1="-18" x2="-22" y2="-6" stroke-width="1.8"/>
+        <line x1="0" y1="-18" x2="-6" y2="-6" stroke-width="1.8"/>
+        <line x1="16" y1="-18" x2="10" y2="-6" stroke-width="1.8"/>
+      </g>
+      <text x="154" y="404" text-anchor="middle" font-size="14" font-weight="700" fill="#EDEDEF">Movies &amp; Theatres</text>
+      <text x="154" y="420" text-anchor="middle" font-size="10.5" fill="#8B8B93" stroke="none">600 · 200 rows</text>
+    </g>
+
+    <!-- arrows collect -> ingest -->
+    <g stroke="#EDEDEF" stroke-width="2" fill="none">
+      <path id="p1" d="M246,137 C300,137 300,220 336,240" marker-end="url(#nArrow)"/>
+      <path id="p2" d="M246,255 L336,255" marker-end="url(#nArrow)"/>
+      <path id="p3" d="M246,373 C300,373 300,270 336,255" marker-end="url(#nArrow)"/>
+    </g>
+    <circle class="motion-dot" r="4" fill="#2DD4BF" filter="url(#glow)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath href="#p1"/></animateMotion></circle>
+    <circle class="motion-dot" r="4" fill="#2DD4BF" filter="url(#glow)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.6s"><mpath href="#p2"/></animateMotion></circle>
+    <circle class="motion-dot" r="4" fill="#2DD4BF" filter="url(#glow)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1.2s"><mpath href="#p3"/></animateMotion></circle>
+
+    <!-- ============ INGEST (crimson) ============ -->
+    <g stroke="#F43F5E">
+      <rect x="340" y="106" width="196" height="300" rx="20" fill="none" stroke-width="3"/>
+      <!-- sync icon -->
+      <g transform="translate(438,190)" fill="none" stroke-width="3" filter="url(#glow)">
+        <path d="M -34 0 A 34 34 0 1 1 -20 27" />
+        <path d="M -34 0 A 34 34 0 1 0 -20 -27" />
+        <path d="M -36 -10 L -34 0 L -24 -4" />
+        <path d="M -36 10 L -34 0 L -24 4" />
+      </g>
+      <text x="438" y="258" text-anchor="middle" font-size="17" font-weight="800" fill="#EDEDEF" stroke="none">Auto Loader</text>
+      <text x="438" y="278" text-anchor="middle" font-size="11.5" fill="#C9C9CE" stroke="none">Raw Landing Volume</text>
+      <!-- bar icon -->
+      <g transform="translate(438,335)" stroke="none">
+        <rect x="-36" y="-8" width="9" height="16" rx="2" fill="#2DD4BF"/>
+        <rect x="-22" y="-18" width="9" height="26" rx="2" fill="#F43F5E"/>
+        <rect x="-8" y="-24" width="9" height="32" rx="2" fill="#FACC15"/>
+        <rect x="6" y="-14" width="9" height="22" rx="2" fill="#A3E635"/>
+        <rect x="20" y="-20" width="9" height="28" rx="2" fill="#FB923C"/>
+      </g>
+    </g>
+
+    <!-- arrows ingest -> store -->
+    <g stroke="#EDEDEF" stroke-width="2" fill="none">
+      <path id="p4" d="M536,220 C580,220 570,150 616,150" marker-end="url(#nArrow)"/>
+      <path id="p5" d="M536,280 C580,280 570,340 616,340" marker-end="url(#nArrow)"/>
+    </g>
+    <circle class="motion-dot" r="4" fill="#F43F5E" filter="url(#glow)"><animateMotion dur="2.2s" repeatCount="indefinite" begin="0s"><mpath href="#p4"/></animateMotion></circle>
+    <circle class="motion-dot" r="4" fill="#F43F5E" filter="url(#glow)"><animateMotion dur="2.2s" repeatCount="indefinite" begin="1.1s"><mpath href="#p5"/></animateMotion></circle>
+
+    <!-- ============ STORE (gold) ============ -->
+    <g stroke="#FACC15">
+      <rect x="616" y="62" width="270" height="396" rx="20" fill="none" stroke-width="3"/>
+
+      <!-- medallion stack icon -->
+      <g transform="translate(751,150)" stroke-width="2.4">
+        <rect x="-52" y="18" width="104" height="20" rx="6" fill="#B8763E" fill-opacity="0.85" stroke="#B8763E"/>
+        <rect x="-52" y="-6" width="104" height="20" rx="6" fill="#9AA6B8" fill-opacity="0.85" stroke="#9AA6B8"/>
+        <rect x="-52" y="-30" width="104" height="20" rx="6" fill="#FACC15" fill-opacity="0.9" stroke="#FACC15"/>
+      </g>
+      <text x="751" y="200" text-anchor="middle" font-size="15" font-weight="800" fill="#EDEDEF" stroke="none">Medallion Layers</text>
+      <text x="751" y="218" text-anchor="middle" font-size="11" fill="#C9C9CE" stroke="none">bronze · silver · gold</text>
+
+      <!-- lakehouse icon -->
+      <g transform="translate(751,330)" fill="none" stroke-width="2.4">
+        <path d="M-34,10 L-34,-14 L0,-38 L34,-14 L34,10" />
+        <circle cx="18" cy="-6" r="7"/>
+        <line x1="18" y1="-13" x2="18" y2="-17"/>
+        <line x1="18" y1="1" x2="18" y2="5"/>
+        <line x1="11" y1="-6" x2="7" y2="-6"/>
+        <line x1="25" y1="-6" x2="29" y2="-6"/>
+        <path d="M-44,20 Q-34,12 -24,20 T-4,20 T16,20 T36,20 T46,20" stroke-width="2"/>
+        <path d="M-44,28 Q-34,20 -24,28 T-4,28 T16,28 T36,28 T46,28" stroke-width="2"/>
+      </g>
+      <text x="751" y="392" text-anchor="middle" font-size="15" font-weight="800" fill="#EDEDEF" stroke="none">Lakehouse</text>
+      <text x="751" y="410" text-anchor="middle" font-size="11" fill="#C9C9CE" stroke="none">governed by Unity Catalog</text>
+    </g>
+
+    <!-- arrow store -> compute -->
+    <path id="p6" d="M886,260 L946,260" stroke="#EDEDEF" stroke-width="2" fill="none" marker-end="url(#nArrow)"/>
+    <circle class="motion-dot" r="4" fill="#FACC15" filter="url(#glow)"><animateMotion dur="1.4s" repeatCount="indefinite" begin="0s"><mpath href="#p6"/></animateMotion></circle>
+
+    <!-- ============ COMPUTE (lime) ============ -->
+    <g stroke="#A3E635">
+      <rect x="950" y="106" width="236" height="300" rx="20" fill="none" stroke-width="3"/>
+
+      <!-- pipeline/doc icon -->
+      <g transform="translate(1068,175)" fill="none" stroke-width="2.4">
+        <rect x="-30" y="-30" width="60" height="72" rx="6"/>
+        <line x1="-18" y1="-14" x2="18" y2="-14"/>
+        <line x1="-18" y1="-2" x2="18" y2="-2"/>
+        <line x1="-18" y1="10" x2="18" y2="10"/>
+        <line x1="-18" y1="22" x2="6" y2="22"/>
+      </g>
+      <text x="1068" y="228" text-anchor="middle" font-size="14.5" font-weight="800" fill="#EDEDEF" stroke="none">Lakeflow Pipeline</text>
+      <text x="1068" y="246" text-anchor="middle" font-size="10.5" fill="#C9C9CE" stroke="none">declarative · serverless</text>
+
+      <!-- orchestration cluster icon -->
+      <g transform="translate(1068,320)" fill="none" stroke-width="2.4">
+        <rect x="-34" y="-10" width="18" height="18" rx="3"/>
+        <rect x="16" y="-10" width="18" height="18" rx="3"/>
+        <rect x="-9" y="14" width="18" height="18" rx="3"/>
+        <line x1="-25" y1="-1" x2="0" y2="14"/>
+        <line x1="25" y1="-1" x2="0" y2="14"/>
+      </g>
+      <text x="1068" y="366" text-anchor="middle" font-size="14.5" font-weight="800" fill="#EDEDEF" stroke="none">Daily Batch Job</text>
+      <text x="1068" y="384" text-anchor="middle" font-size="10.5" fill="#C9C9CE" stroke="none">refresh + revenue summary</text>
+    </g>
+
+    <!-- arrows compute -> consume -->
+    <g stroke="#EDEDEF" stroke-width="2" fill="none">
+      <path id="p7" d="M1186,190 C1230,190 1220,130 1264,130" marker-end="url(#nArrow)"/>
+      <path id="p8" d="M1186,256 L1264,256" marker-end="url(#nArrow)"/>
+      <path id="p9" d="M1186,320 C1230,320 1220,380 1264,380" marker-end="url(#nArrow)"/>
+    </g>
+    <circle class="motion-dot" r="4" fill="#A3E635" filter="url(#glow)"><animateMotion dur="2.2s" repeatCount="indefinite" begin="0s"><mpath href="#p7"/></animateMotion></circle>
+    <circle class="motion-dot" r="4" fill="#A3E635" filter="url(#glow)"><animateMotion dur="2.2s" repeatCount="indefinite" begin="0.7s"><mpath href="#p8"/></animateMotion></circle>
+    <circle class="motion-dot" r="4" fill="#A3E635" filter="url(#glow)"><animateMotion dur="2.2s" repeatCount="indefinite" begin="1.4s"><mpath href="#p9"/></animateMotion></circle>
+
+    <!-- ============ CONSUME (orange) ============ -->
+    <g stroke="#FB923C">
+      <rect x="1268" y="56" width="188" height="404" rx="20" fill="none" stroke-width="3"/>
+
+      <rect x="1284" y="76" width="156" height="104" rx="14" fill="#FB923C" fill-opacity="0.07" stroke-width="2"/>
+      <g transform="translate(1362,116)" fill="none" stroke-width="2.4">
+        <line x1="-24" y1="18" x2="-24" y2="-6"/>
+        <line x1="-8" y1="18" x2="-8" y2="-18"/>
+        <line x1="8" y1="18" x2="8" y2="2"/>
+        <line x1="24" y1="18" x2="24" y2="-12"/>
+      </g>
+      <text x="1362" y="160" text-anchor="middle" font-size="13.5" font-weight="800" fill="#EDEDEF" stroke="none">Executive KPIs</text>
+      <text x="1362" y="176" text-anchor="middle" font-size="10" fill="#C9C9CE" stroke="none">revenue · failure rate</text>
+
+      <rect x="1284" y="196" width="156" height="104" rx="14" fill="#FB923C" fill-opacity="0.07" stroke-width="2"/>
+      <g transform="translate(1362,238)" fill="none" stroke-width="2.4">
+        <polyline points="-26,10 -10,-4 2,4 26,-16"/>
+        <circle cx="26" cy="-16" r="3" fill="#FB923C" stroke="none"/>
+      </g>
+      <text x="1362" y="280" text-anchor="middle" font-size="13.5" font-weight="800" fill="#EDEDEF" stroke="none">Trends &amp; Reach</text>
+      <text x="1362" y="296" text-anchor="middle" font-size="10" fill="#C9C9CE" stroke="none">gateway health · city</text>
+
+      <rect x="1284" y="316" width="156" height="104" rx="14" fill="#FB923C" fill-opacity="0.07" stroke-width="2"/>
+      <g transform="translate(1362,358)" fill="none" stroke-width="2.2">
+        <rect x="-26" y="-16" width="52" height="34" rx="4"/>
+        <line x1="-26" y1="1" x2="26" y2="1"/>
+        <line x1="0" y1="-16" x2="0" y2="18"/>
+      </g>
+      <text x="1362" y="400" text-anchor="middle" font-size="13.5" font-weight="800" fill="#EDEDEF" stroke="none">Movie Performance</text>
+      <text x="1362" y="416" text-anchor="middle" font-size="10" fill="#C9C9CE" stroke="none">top 10 · detail table</text>
+    </g>
+
+    <!-- ============ BOTTOM PROCESS BAR ============ -->
+    <path id="flowBar" d="M70,580 L1430,580" fill="none" stroke="#3A3A42" stroke-width="2"/>
+    <path class="flow-dash" d="M70,580 L1430,580" fill="none" stroke="#EDEDEF" stroke-width="2" stroke-dasharray="7 7" opacity="0.85"/>
+    <circle class="motion-dot" r="5" fill="#FFFFFF" filter="url(#glow)"><animateMotion dur="4s" repeatCount="indefinite" begin="0s"><mpath href="#flowBar"/></animateMotion></circle>
+    <circle class="motion-dot" r="5" fill="#FFFFFF" filter="url(#glow)"><animateMotion dur="4s" repeatCount="indefinite" begin="-1.33s"><mpath href="#flowBar"/></animateMotion></circle>
+    <circle class="motion-dot" r="5" fill="#FFFFFF" filter="url(#glow)"><animateMotion dur="4s" repeatCount="indefinite" begin="-2.66s"><mpath href="#flowBar"/></animateMotion></circle>
+
+    <g stroke="none">
+      <polygon points="46,548 236,548 256,580 236,612 46,612" fill="#2DD4BF"/>
+      <text x="140" y="588" text-anchor="middle" font-size="16" font-weight="800" fill="#101012">GENERATE</text>
+
+      <polygon points="316,548 476,548 496,580 476,612 316,612" fill="#F43F5E"/>
+      <text x="396" y="588" text-anchor="middle" font-size="16" font-weight="800" fill="#101012">INGEST</text>
+
+      <polygon points="576,548 756,548 776,580 756,612 576,612" fill="#FACC15"/>
+      <text x="666" y="588" text-anchor="middle" font-size="16" font-weight="800" fill="#101012">REFINE</text>
+
+      <polygon points="856,548 1076,548 1096,580 1076,612 856,612" fill="#A3E635"/>
+      <text x="966" y="588" text-anchor="middle" font-size="16" font-weight="800" fill="#101012">ORCHESTRATE</text>
+
+      <polygon points="1196,548 1396,548 1416,580 1396,612 1196,612" fill="#FB923C"/>
+      <text x="1296" y="588" text-anchor="middle" font-size="16" font-weight="800" fill="#101012">ANALYZE</text>
+    </g>
+
+  </g>
+</svg>
