@@ -14,7 +14,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Databricks CLI
-        uses: databricks/setup-cli@main
+        id: setup_cli
+        uses: databricks/setup-cli@v1.12.1
+        continue-on-error: true
+
+      - name: Install Databricks CLI (retry)
+        if: steps.setup_cli.outcome == 'failure'
+        uses: databricks/setup-cli@v1.12.1
 
       - name: Validate bundle
         run: databricks bundle validate --target prod
