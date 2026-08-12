@@ -1,0 +1,27 @@
+# Unity Catalog foundation for the BookMyShow data platform: one schema per medallion layer,
+# plus the raw landing volume that Auto Loader/the synthetic data generator write to.
+resources:
+  schemas:
+    bronze_schema:
+      catalog_name: ${var.catalog}
+      name: ${var.bronze_schema}
+      comment: Raw/bronze layer - Auto Loader ingested tables, minimal transformation.
+
+    silver_schema:
+      catalog_name: ${var.catalog}
+      name: ${var.silver_schema}
+      comment: Cleaned/deduplicated silver layer with enforced data quality expectations.
+
+    gold_schema:
+      catalog_name: ${var.catalog}
+      name: ${var.gold_schema}
+      comment: Dimensional gold layer (facts/dims) and governed metric views.
+
+  volumes:
+    raw_landing:
+      catalog_name: ${var.catalog}
+      # Reference (not the raw variable) so the bundle deploys the schema first.
+      schema_name: ${resources.schemas.bronze_schema.name}
+      name: raw_landing
+      volume_type: MANAGED
+      comment: Landing zone for synthetic BookMyShow source data, read by Auto Loader.

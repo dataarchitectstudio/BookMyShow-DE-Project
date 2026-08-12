@@ -1,20 +1,14 @@
-# Daily refresh job for the BookMyShow data platform: generate today's incremental
-# synthetic data, then refresh the bronze/silver/gold pipeline on top of it.
+# On-demand full historical rebuild for the BookMyShow data platform: generates the
+# complete synthetic dataset from scratch, then does a full-refresh pipeline run.
+# Kept separate from bookmyshow_daily_refresh (which only ever runs incrementally) so a
+# full rebuild never happens by accident.
 
 resources:
   jobs:
-    bookmyshow_daily_refresh:
-      name: bookmyshow_daily_refresh
+    bookmyshow_full_rebuild:
+      name: bookmyshow_full_rebuild
 
-      trigger:
-        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
-        periodic:
-          interval: 1
-          unit: DAYS
-
-      #email_notifications:
-      #  on_failure:
-      #    - your_email@example.com
+      # On-demand only - no periodic/file-arrival trigger.
 
       parameters:
         - name: catalog
@@ -33,20 +27,18 @@ resources:
               - "--bronze-schema"
               - "${resources.schemas.bronze_schema.name}"
               - "--mode"
-              - "incremental"
+              - "full"
           environment_key: default
         - task_key: refresh_pipeline
           depends_on:
             - task_key: generate_synthetic_data
           pipeline_task:
             pipeline_id: ${resources.pipelines.bookmyshow_etl.id}
+            full_refresh: true
 
       environments:
         - environment_key: default
           spec:
             environment_version: "4"
             dependencies:
-              # By default we just include the .whl file generated for the bookmyshow package.
-              # See https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
-              # for more information on how to add other libraries.
               - ../dist/*.whl

@@ -1,17 +1,31 @@
-# The main pipeline for BookMyShow_dlt_001
+# The medallion ETL pipeline (bronze/silver/gold) for the BookMyShow data platform.
 
 resources:
   pipelines:
-    BookMyShow_dlt_001_etl:
-      name: BookMyShow_dlt_001_etl
+    bookmyshow_etl:
+      name: bookmyshow_etl
       catalog: ${var.catalog}
-      schema: ${var.schema}
+      # Default/fallback schema for any table that doesn't set its own `schema=` in
+      # the @dp.table decorator. Bronze/silver/gold transformations (added in later
+      # steps) each target their own layer schema explicitly.
+      # NOTE: reference the schema *resource* (not ${var.bronze_schema} directly) -
+      # in `mode: development` DABs auto-prefixes the deployed schema's actual name
+      # (e.g. dev_<user>_<var>), so only the resource output reflects the real name.
+      schema: ${resources.schemas.bronze_schema.name}
       serverless: true
-      root_path: "../src/BookMyShow_dlt_001_etl"
+      root_path: "../src/bookmyshow_pipeline"
+
+      configuration:
+        raw_volume_path: /Volumes/${var.catalog}/${resources.schemas.bronze_schema.name}/raw_landing
+        # Silver/gold transformations target these schemas explicitly via
+        # fully-qualified table names (see Multi-Schema Patterns) since the pipeline
+        # default above is bronze_schema.
+        silver_schema: ${resources.schemas.silver_schema.name}
+        gold_schema: ${resources.schemas.gold_schema.name}
 
       libraries:
         - glob:
-            include: ../src/BookMyShow_dlt_001_etl/transformations/**
+            include: ../src/bookmyshow_pipeline/transformations/**
 
       environment:
         dependencies:

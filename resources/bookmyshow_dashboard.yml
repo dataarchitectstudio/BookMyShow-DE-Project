@@ -1,0 +1,16 @@
+# AI/BI dashboard for the BookMyShow data platform: Executive KPIs, Trends & Reach
+# (payment-failure spike traceability), and Movie Performance -- all three pages query
+# the governed metric views (or direct gold-table rollups) from bookmyshow_etl.pipeline.yml,
+# never raw fact/dim tables.
+
+resources:
+  dashboards:
+    bookmyshow_analytics:
+      display_name: BookMyShow Analytics
+      file_path: ../src/bookmyshow_pipeline/dashboards/bookmyshow_analytics.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      # dataset_catalog/dataset_schema override the bare table/asset names used
+      # throughout the dashboard JSON (e.g. `FROM mv_payment_health`), so the same
+      # JSON deploys unmodified to dev and prod.
+      dataset_catalog: ${var.catalog}
+      dataset_schema: ${resources.schemas.gold_schema.name}
