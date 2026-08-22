@@ -16,7 +16,13 @@
       <feGaussianBlur stdDeviation="3.2" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#86EFAC" stroke-opacity="0.15" stroke-width="1"/>
+    </pattern>
   </defs>
+
+  <rect x="0" y="0" width="1500" height="700" fill="#000000"/>
+  <rect x="0" y="0" width="1500" height="700" fill="url(#gridPattern)"/>
 
   <g font-family="ui-sans-serif, Segoe UI, Helvetica Neue, Arial, sans-serif" stroke-linecap="round" stroke-linejoin="round">
 
