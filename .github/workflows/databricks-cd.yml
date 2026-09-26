@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy bundle to prod
+    name: Deploy bundle to prod Databricks workspace
     runs-on: ubuntu-latest
     environment: production
     steps:
